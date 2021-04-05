@@ -1,0 +1,27 @@
+---
+version: '3'
+services:
+    wallen-db:
+        build: 
+            context: .
+            dockerfile: ./docker/Dockerfile.db
+        container_name: wallen-db
+        ports:
+            - 6441:6379
+        user: "827385:815499"
+        volumes:
+            - ./data/:/data/
+    wallen-fe:
+        build: 
+            context: .
+            dockerfile: ./docker/Dockerfile.fe
+        container_name: wallen-fe
+        ports:
+            - 5041:5000
+    wallen-api:
+        build: 
+            context: .
+            dockerfile: ./docker/Dockerfile.api
+        container_name: wallen-api
+        ports:
+            - 5141:5000
