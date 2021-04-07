@@ -16,11 +16,18 @@ Mapped to port 5041 on ISP. Try the following routes:
 
 ```
 curl localhost:5041/             # general info
-curl localhost:5041/run/<AAAAA>  # submit a job - input is 'AAAAA'
+curl localhost:5041/run          # get instructions to submit a job
 curl localhost:5041/jobs         # get past jobs
 curl localhost:5041/jobs/JOBID   # get results for JOBID
+```
+
+The `/run` route also has a POST method for submitting jobs, which looks like:
 
 ```
+curl -X POST -d "seq=AAAAA" localhost:5041/run
+```
+
+In that case, the sequence "AAAAA" is analyzed.
 
 When testing things, it assumes docker bridge network `wallen-network-test` exists.
 Do the following to deploy individual services::
@@ -85,12 +92,23 @@ For 8-state secondary structure (SS8), H, G, I, E, B, T, S, and L represent alph
 The relevant solvent accessibility is divided into three states by 2 cutoff values: 10% and 40% so that the three states have equal distribution. Buried for less than 10%, exposed for larger than 40% and medium for between 10% and 40%. Buried, Medium and Exposed are also abbreviated as B, M and E, respectively.
 ```
 
-Do a head -n 8 <id>PROP/<id>.all to return the useful lines
+If running the tool on the command line, a `head -n 8 <id>PROP/<id>.all` will
+return all of the useful lines. Here are some commands to set up and test the
+api container:
+
+```
+make clean-api    # remove api container
+make test-api     # build dockerfile and start api container
+```
 
 Something like this can be used to test the api without going through the fe:
 
-curl -H "Content-Type: application/json" --request POST --data '{"uuid":"this is my uuid","sequence":"CAPPCPAPCPAPAPCA"}' localhost:5141/job
-
+```
+curl -H "Content-Type: application/json" \
+     --request POST \
+     --data '{"uuid":"this is my uuid","sequence":"CAPPCPAPCPAPAPCA"}' \
+     localhost:5141/job
+```
 
 
 #### Docker Bridge Network
