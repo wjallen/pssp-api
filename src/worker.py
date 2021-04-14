@@ -11,6 +11,8 @@ q = HotQueue('queue', host='wallen-db', port=6379, db=1)
 @q.worker
 def run_pssp_job(job):
 
+    subprocess.run(["sleep 30"], shell=True, check=True)
+
     data = rd.hgetall(job)
     this_sequence = data['input']
 
@@ -38,6 +40,7 @@ def run_pssp_job(job):
     result['TM8'] = output[7]
 
     rd.hset(job, 'result', json.dumps(result))
+    rd.hset(job, 'status', 'finished')
 
     return
 
