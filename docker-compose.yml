@@ -11,17 +11,17 @@ services:
         user: "827385:815499"
         volumes:
             - ./data/:/data/
-    wallen-fe:
-        build: 
-            context: .
-            dockerfile: ./docker/Dockerfile.fe
-        container_name: wallen-fe
-        ports:
-            - 5041:5000
     wallen-api:
         build: 
             context: .
             dockerfile: ./docker/Dockerfile.api
         container_name: wallen-api
+        ports:
+            - 5041:5000
+    wallen-wrk:
+        build: 
+            context: .
+            dockerfile: ./docker/Dockerfile.wrk
+        container_name: wallen-wrk
         ports:
             - 5141:5000

@@ -11,14 +11,14 @@ build-db:
                      -f docker/Dockerfile.db \
                      ./
 
-build-fe:
-	docker build -t ${NSPACE}/${APP}-fe:${VER} \
-                     -f docker/Dockerfile.fe \
-                     ./
-
 build-api:
 	docker build -t ${NSPACE}/${APP}-api:${VER} \
                      -f docker/Dockerfile.api \
+                     ./
+
+build-wrk:
+	docker build -t ${NSPACE}/${APP}-wrk:${VER} \
+                     -f docker/Dockerfile.wrk \
                      ./
 
 
@@ -31,24 +31,24 @@ test-db: build-db
                    -v ${PWD}/data/:/data \
                    ${NSPACE}/${APP}-db:${VER}
 
-test-fe: build-fe
-	docker run --name ${NSPACE}-fe \
-                   --network ${NSPACE}-network-test \
-                   -p 5041:5000 \
-                   -d \
-                   ${NSPACE}/${APP}-fe:${VER} 
-
 test-api: build-api
 	docker run --name ${NSPACE}-api \
                    --network ${NSPACE}-network-test \
-                   -p 5141:5000 \
+                   -p 5041:5000 \
                    -d \
                    ${NSPACE}/${APP}-api:${VER} 
 
+test-wrk: build-wrk
+	docker run --name ${NSPACE}-wrk \
+                   --network ${NSPACE}-network-test \
+                   -p 5141:5000 \
+                   -d \
+                   ${NSPACE}/${APP}-wrk:${VER} 
 
-build-all: build-db build-fe build-api
 
-test-all: test-db test-fe test-api
+build-all: build-db build-api build-wrk
+
+test-all: test-db test-api test-wrk
 
 
 
@@ -58,11 +58,11 @@ clean-all:
 clean-db:
 	docker ps -a | grep ${NSPACE}-db | awk '{print $$1}' | xargs docker rm -f
 
-clean-fe:
-	docker ps -a | grep ${NSPACE}-fe | awk '{print $$1}' | xargs docker rm -f
-
 clean-api:
 	docker ps -a | grep ${NSPACE}-api | awk '{print $$1}' | xargs docker rm -f
+
+clean-wrk:
+	docker ps -a | grep ${NSPACE}-wrk | awk '{print $$1}' | xargs docker rm -f
 
 
 

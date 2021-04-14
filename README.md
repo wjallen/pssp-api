@@ -6,12 +6,12 @@ prediction (PSSP) tool called *Predict_Property*: https://github.com/realbigws/P
 
 There are three containerized components:
 
-1) A Flask front end for submitting / accessing jobs
+1) A Flask API front end for submitting / accessing jobs
 2) A Redis database for storing job information
-3) A Flask-RESTful interface to the PSSP code
+3) A worker back-end which runs the PSSP code
 
 
-#### Flask Front End
+#### Flask API Front End
 
 Mapped to port 5041 on ISP. Try the following routes:
 
@@ -34,8 +34,8 @@ When testing things, it assumes docker bridge network `wallen-network-test` exis
 Do the following to deploy individual services::
 
 ```
-make clean-fe     # remove fe container
-make test-fe      # build dockerfile and start fe container
+make clean-api     # remove api container
+make test-api      # build dockerfile and start api container
 ```
 
 The bridge network is not needed if doing `docker-compose up` - docker will make
@@ -95,20 +95,11 @@ The relevant solvent accessibility is divided into three states by 2 cutoff valu
 
 If running the tool on the command line, a `head -n 8 <id>PROP/<id>.all` will
 return all of the useful lines. Here are some commands to set up and test the
-api container:
+worker container:
 
 ```
-make clean-api    # remove api container
-make test-api     # build dockerfile and start api container
-```
-
-Something like this can be used to test the api without going through the fe:
-
-```
-curl -H "Content-Type: application/json" \
-     --request POST \
-     --data '{"uuid":"this is my uuid","sequence":"CAPPCPAPCPAPAPCA"}' \
-     localhost:5141/job
+make clean-wrk    # remove worker container
+make test-wrk     # build dockerfile and start worker container
 ```
 
 

@@ -1,0 +1,16 @@
+FROM python:3.6.13
+
+RUN apt-get update && apt-get install -y rpm tcsh
+
+RUN git clone https://github.com/realbigws/Predict_Property && \
+    cd Predict_Property/source_code && \
+    make
+
+RUN pip3 install Flask==1.1.2 \
+                 Flask-RESTful==0.3.8 \
+                 redis==3.5.3 
+
+COPY ./src/worker.py /app/
+WORKDIR /app
+
+CMD ["python", "/app/worker.py"]

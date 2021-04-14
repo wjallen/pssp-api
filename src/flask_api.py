@@ -1,57 +1,80 @@
+from datetime import datetime
 from flask import Flask, request
-from flask_restful import reqparse, Resource, Api
 import json
 import redis
-import subprocess
+import requests
+from uuid import uuid4
 
 
 app = Flask(__name__)
-api = Api(app)
-
 rd = redis.StrictRedis(host='wallen-db', port=6379, db=0)
 
 
-class RunTest(Resource):
-    def get(self):
-        return {'status': 'test works'}
+@app.route('/', methods=['GET'])
+def instructions():
+    return """
+    Try these routes:
+    
+    /             informational
+    /run          (GET) job instructions
+    /run          (POST) submit job
+    /jobs         get list of past jobs
+    /jobs/<UUID>  get job results
+
+"""
 
 
-class RunJob(Resource):
-    def post(self):
-        data = request.get_json(force=True)
-        this_uuid = data['uuid']
-        sequence = data['sequence']
+@app.route('/run', methods=['GET', 'POST'])
+def run_job():
 
-        subprocess.run(['mkdir -p /analyze/temp'], shell=True, check=True)
-        with open('/analyze/sequence.fasta', 'w') as out:
-            out.write(f'>JOBID = {this_uuid}\n')
-            out.write(f'{sequence}\n')
-        subprocess.run(['/Predict_Property/Predict_Property.sh -i /analyze/sequence.fasta -o /analyze/temp'], shell=True, check=True) 
+    if request.method == 'POST':
+        this_uuid = str(uuid4()) 
+        this_sequence = str(request.form['seq'])
+        data = { 'datetime': str(datetime.now()),
+                 'status': 'submitted',
+                 'input': this_sequence,
+                 'result': 'pending' } 
+        rd.hmset(this_uuid, data)
+        response = requests.post(url='http://wallen-api:5000/job', json={'uuid': this_uuid, 'sequence': this_sequence})
+        if response.status_code == 200 or response.status_code == 201:
+            rd.hset(this_uuid, 'status', f'success, {response.status_code}')
+        else:
+            rd.hset(this_uuid, 'status', f'failure, {response.status_code}')
+        return f'JOBID = {this_uuid}\n'
 
-        output = []
+    else:
+        return """
+    This is a route for POSTing sequences to run. Use the form:
 
-        with open('/analyze/temp/sequence.all') as f:
-            for _ in range(8):
-                line = next(f).strip()
-                output.append(line)
+    curl -X POST -d "seq=AAAAA" localhost:5041/run
 
-        result = {}
-        result['HED'] = output[0]
-        result['INP'] = output[1]
-        result['SS3'] = output[2]
-        result['SS8'] = output[3]
-        result['ACC'] = output[4]
-        result['DIS'] = output[5]
-        result['TM2'] = output[6]
-        result['TM8'] = output[7]
+    Where the sequence "AAAAA" is what you want to analyze.
 
-        rd.hset(this_uuid, 'result', json.dumps(result))
-        return result
+"""
 
 
-api.add_resource(RunTest, '/')
-api.add_resource(RunJob, '/job')
+@app.route('/jobs', methods=['GET'])
+def get_jobs():
+    redis_dict = {}
+    for key in rd.keys():
+        redis_dict[str(key.decode('utf-8'))] = {}
+        redis_dict[str(key.decode('utf-8'))]['datetime'] = rd.hget(key, 'datetime').decode('utf-8')
+        redis_dict[str(key.decode('utf-8'))]['status'] = rd.hget(key, 'status').decode('utf-8')
+    return json.dumps(redis_dict, indent=4)
+
+
+@app.route('/jobs/<jobuuid>', methods=['GET'])
+def get_job_output(jobuuid):
+    bytes_dict = rd.hgetall(jobuuid)
+    final_dict = {}
+    for key, value in bytes_dict.items():
+        if key.decode('utf-8') == 'result':
+            final_dict[key.decode('utf-8')] = json.loads(value.decode('utf-8'))
+        else:
+            final_dict[key.decode('utf-8')] = value.decode('utf-8')
+    return json.dumps(final_dict, indent=4)
 
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
+
