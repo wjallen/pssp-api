@@ -33,19 +33,11 @@ def run_job():
         this_sequence = str(request.form['seq'])
         data = { 'datetime': str(datetime.now()),
                  'status': 'submitted',
-                 'input': this_sequence,
-                 'result': 'pending' } 
+                 'input': this_sequence }
         rd.hmset(this_uuid, data)
 
         q.put(this_uuid)
         return f'Job {this_uuid} submitted to the queue\n'
-
-#        response = requests.post(url='http://wallen-api:5000/job', json={'uuid': this_uuid, 'sequence': this_sequence})
-#        if response.status_code == 200 or response.status_code == 201:
-#            rd.hset(this_uuid, 'status', f'success, {response.status_code}')
-#        else:
-#            rd.hset(this_uuid, 'status', f'failure, {response.status_code}')
-#        return f'JOBID = {this_uuid}\n'
 
     else:
         return """
