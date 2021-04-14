@@ -46,15 +46,6 @@ test-wrk: build-wrk
                    ${NSPACE}/${APP}-wrk:${VER} 
 
 
-build-all: build-db build-api build-wrk
-
-test-all: test-db test-api test-wrk
-
-
-
-clean-all:
-	docker ps -a | grep ${NSPACE} | awk '{print $$1}'  | xargs docker rm -f
-
 clean-db:
 	docker ps -a | grep ${NSPACE}-db | awk '{print $$1}' | xargs docker rm -f
 
@@ -66,10 +57,19 @@ clean-wrk:
 
 
 
+build-all: build-db build-api build-wrk
+
+test-all: test-db test-api test-wrk
+
+clean-all: clean-db clean-api clean-wrk
+
+
+
 
 compose-up:
-	docker-compose -p ${NSPACE} up -d --build
+	docker-compose -f docker/docker-compose.yml pull
+	docker-compose -f docker/docker-compose.yml -p ${NSPACE} up -d --build
 
 compose-down:
-	docker-compose -p ${NSPACE} down
+	docker-compose -f docker/docker-compose.yml -p ${NSPACE} down
 
