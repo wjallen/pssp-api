@@ -1,8 +1,8 @@
 FROM python:3.6.13
 
 RUN pip3 install Flask==1.1.2 \
-                 redis==3.5.3 \
-                 requests==2.25.1
+                 hotqueue==0.2.8 \
+                 redis==3.5.3 
 
 COPY ./src/flask_api.py /app/
 WORKDIR /app

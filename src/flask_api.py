@@ -1,13 +1,14 @@
 from datetime import datetime
 from flask import Flask, request
 import json
+from hotqueue import HotQueue
 import redis
-import requests
 from uuid import uuid4
 
 
 app = Flask(__name__)
 rd = redis.StrictRedis(host='wallen-db', port=6379, db=0)
+q = HotQueue('queue', host='wallen-db', port=6379, db=1)
 
 
 @app.route('/', methods=['GET'])
@@ -35,12 +36,16 @@ def run_job():
                  'input': this_sequence,
                  'result': 'pending' } 
         rd.hmset(this_uuid, data)
-        response = requests.post(url='http://wallen-api:5000/job', json={'uuid': this_uuid, 'sequence': this_sequence})
-        if response.status_code == 200 or response.status_code == 201:
-            rd.hset(this_uuid, 'status', f'success, {response.status_code}')
-        else:
-            rd.hset(this_uuid, 'status', f'failure, {response.status_code}')
-        return f'JOBID = {this_uuid}\n'
+
+        q.put(this_uuid)
+        return f'Job {this_uuid} submitted to the queue\n'
+
+#        response = requests.post(url='http://wallen-api:5000/job', json={'uuid': this_uuid, 'sequence': this_sequence})
+#        if response.status_code == 200 or response.status_code == 201:
+#            rd.hset(this_uuid, 'status', f'success, {response.status_code}')
+#        else:
+#            rd.hset(this_uuid, 'status', f'failure, {response.status_code}')
+#        return f'JOBID = {this_uuid}\n'
 
     else:
         return """
