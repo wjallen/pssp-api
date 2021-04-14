@@ -1,5 +1,7 @@
 FROM python:3.6.13
 
+RUN ln -sf /usr/share/zoneinfo/America/Chicago /etc/localtime
+
 RUN pip3 install Flask==1.1.2 \
                  hotqueue==0.2.8 \
                  redis==3.5.3 
