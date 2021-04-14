@@ -1,6 +1,6 @@
 NSPACE="wallen"
 APP="pssp-app"
-VER="1.0.1"
+VER="0.1.0"
 
 list-targets:
 	@$(MAKE) -pRrq -f $(lastword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | egrep -v -e '^[^[:alnum:]]' -e '^$@$$'
@@ -41,7 +41,6 @@ test-api: build-api
 test-wrk: build-wrk
 	docker run --name ${NSPACE}-wrk \
                    --network ${NSPACE}-network-test \
-                   -p 5141:5000 \
                    -d \
                    ${NSPACE}/${APP}-wrk:${VER} 
 
