@@ -1,4 +1,4 @@
-## PSSP App
+## PSSP API
 
 This is a demo repository for the COE332 class on how to build a REST API interface to a
 scientific code base. The example code used here is a protein secondary structure
