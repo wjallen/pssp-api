@@ -66,12 +66,12 @@ clean-all: clean-db clean-api clean-wrk
 
 
 compose-up:
-	docker-compose -f docker/docker-compose.yml pull
-	docker-compose -f docker/docker-compose.yml -p ${NSPACE} up -d --build ${NSPACE}-db
-	docker-compose -f docker/docker-compose.yml -p ${NSPACE} up -d --build ${NSPACE}-api
+	VER=${VER} docker-compose -f docker/docker-compose.yml pull
+	VER=${VER} docker-compose -f docker/docker-compose.yml -p ${NSPACE} up -d --build ${NSPACE}-db
+	VER=${VER} docker-compose -f docker/docker-compose.yml -p ${NSPACE} up -d --build ${NSPACE}-api
 	sleep 5
-	docker-compose -f docker/docker-compose.yml -p ${NSPACE} up -d --build ${NSPACE}-wrk
+	VER=${VER} docker-compose -f docker/docker-compose.yml -p ${NSPACE} up -d --build ${NSPACE}-wrk
 
 compose-down:
-	docker-compose -f docker/docker-compose.yml -p ${NSPACE} down
+	VER=${VER} docker-compose -f docker/docker-compose.yml -p ${NSPACE} down
 

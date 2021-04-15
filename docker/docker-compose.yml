@@ -2,7 +2,7 @@
 version: '3'
 services:
     wallen-db:
-        image: wallen/pssp-app-db:0.1.0
+        image: wallen/pssp-app-db:${VER}
         container_name: wallen-db
         ports:
             - 6441:6379
@@ -10,10 +10,10 @@ services:
         volumes:
             - ../data/:/data/
     wallen-api:
-        image: wallen/pssp-app-api:0.1.0
+        image: wallen/pssp-app-api:${VER}
         container_name: wallen-api
         ports:
             - 5041:5000
     wallen-wrk:
-        image: wallen/pssp-app-wrk:0.1.0
+        image: wallen/pssp-app-wrk:${VER}
         container_name: wallen-wrk
