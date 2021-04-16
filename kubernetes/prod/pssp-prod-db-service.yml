@@ -1,0 +1,15 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pssp-prod-db-service
+  labels:
+    env: prod
+spec:
+  type: ClusterIP
+  selector:
+    app: pssp-prod-db
+  ports:
+  - name: redis-port
+    port: 6379
+    targetPort: 6379

@@ -1,0 +1,29 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pssp-prod-api-deployment
+  labels:
+    app: pssp-prod-api
+    env: prod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pssp-prod-api
+  template:
+    metadata:
+      labels:
+        app: pssp-prod-api
+        env: prod
+    spec:
+      containers:
+        - name: pssp-prod-api
+          image: wallen/pssp-app-api:0.1.3
+          imagePullPolicy: Always
+          env:
+          - name: REDIS_IP
+            value: 10.98.221.249
+          ports:
+          - name: http
+            containerPort: 5000
