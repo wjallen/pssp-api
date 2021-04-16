@@ -187,3 +187,35 @@ To determine the appropriate version, try to follow these general guidelines:
 
 See: https://semver.org/
 
+
+
+#### Kubernetes
+
+Currently supporting a Kubernetes test and prod environment. Manual changes needed
+in the yml files for each include the image tag (in all the deployment files), and
+the redis service IP in the api / wrk deployment files. Once those changes are made,
+you can do this to launch everything:
+
+```
+kubectl apply -f kubernetes/test/
+kubectl apply -f kubernetes/prod/
+```
+
+Easiest way to test for now is to kubectl exec into the python debug pod and curl
+whatever routes. Still need to set up nodeport service to see it from the outside
+world.
+
+
+To update to a new version of the containers on Docker Hub, follow these steps:
+
+```
+# first edit the three deployment yml files to point to the new image tag.
+
+kubectl apply -f kubernetes/test/*deployment.yml
+
+# check to make sure pods terminate and restart as appropriate, curl routes
+```
+
+If that works, do the same thing for prod.
+
+
