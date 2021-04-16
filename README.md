@@ -11,7 +11,7 @@ There are three containerized components:
 3) A worker back-end which runs the PSSP code
 
 
-#### Flask API Front End
+### Flask API Front End
 
 Mapped to port 5041 on ISP. Try the following routes:
 
@@ -39,7 +39,7 @@ make test-api      # build dockerfile and start api container
 ```
 
 
-#### Redis DB
+### Redis DB
 
 The Redis db configuration is located at ./data/redis.conf. It is mounted
 inside the container at /data/ when doing `docker run`. It is customized to have
@@ -68,7 +68,7 @@ Here are some useful commands for testing:
 ```
 
 
-#### Worker - Executes Predict_Property
+### Worker - Executes Predict_Property
 
 The scientific code for predicting properties is found here:
 
@@ -106,7 +106,7 @@ Since the worker is just waiting to consume jobs from the hotqueue, the best way
 to test is actually submitting jobs to the API and not calling the code directly.
 
 
-#### Docker Bridge Network
+### Docker Bridge Network
 
 The Makefile assumes that there is a bridge network called:
 `${NSPACE}-network-test`, where ${NSPACE} is something unique, like your
@@ -117,7 +117,7 @@ docker network create wallen-network-test
 ```
 
 
-#### Compose
+### Compose
 
 The above commands are useful for launching and testing individual parts of
 the app. Docker-compose targets have also been written into the Makefile to
@@ -145,7 +145,7 @@ make compose-down
 ```
 
 
-#### Tag Release
+### Tag Release
 
 A Github - Dockerhub integration is set up so that every time a new release is
 tagged in the git repo, the three docker containers will automatically re-build
@@ -189,7 +189,7 @@ See: https://semver.org/
 
 
 
-#### Kubernetes
+### Kubernetes
 
 Currently supporting a Kubernetes test and prod environment. Manual changes needed
 in the yml files for each include the image tag (in all the deployment files), and
