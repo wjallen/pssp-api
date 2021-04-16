@@ -12,8 +12,12 @@ services:
     wallen-api:
         image: wallen/pssp-app-api:${VER}
         container_name: wallen-api
+        environment:
+            - REDIS_IP=wallen-db
         ports:
             - 5041:5000
     wallen-wrk:
         image: wallen/pssp-app-wrk:${VER}
         container_name: wallen-wrk
+        environment:
+            - REDIS_IP=wallen-db

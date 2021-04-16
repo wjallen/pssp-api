@@ -1,11 +1,17 @@
 from hotqueue import HotQueue
 import json
+import os
 import redis
 import subprocess
 
 
-rd = redis.StrictRedis(host='wallen-db', port=6379, db=0, decode_responses=True)
-q = HotQueue('queue', host='wallen-db', port=6379, db=1)
+redis_ip = os.environ.get('REDIS_IP')
+if not redis_ip:
+    raise Exception()
+
+
+rd = redis.StrictRedis(host=redis_ip, port=6379, db=0, decode_responses=True)
+q = HotQueue('queue', host=redis_ip, port=6379, db=1)
 
 
 @q.worker
