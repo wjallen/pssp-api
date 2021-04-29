@@ -27,6 +27,8 @@ def instructions():
     /run          (POST) submit job
     /jobs         get list of past jobs
     /jobs/<UUID>  get job results
+    /delete       (GET) delete instructions
+    /delete       (DELETE) delete job
 
 """
 
@@ -52,6 +54,25 @@ def run_job():
     curl -X POST -d "seq=AAAAA" localhost:5041/run
 
     Where the sequence "AAAAA" is what you want to analyze.
+
+"""
+
+
+@app.route('/delete', methods=['GET', 'DELETE'])
+def delete_job():
+
+    if request.method == 'DELETE':
+        this_jobid = str(request.form['jobid'])
+        rd.delete(this_jobid)
+        return f'Job {this_jobid} deleted\n'
+
+    else:
+        return """
+    This is a route for DELETE-ing former jobs. Use the form:
+
+    curl -X DELETE -d "jobid=asdf1234" localhost:5041/delete
+
+    Where the jobid "asdf1234" is what you want to delete.
 
 """
 
