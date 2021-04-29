@@ -1,6 +1,10 @@
 NSPACE="wallen"
 APP="pssp-app"
 VER="0.1.3"
+RPORT="6441"
+FPORT="5041"
+UID="827385"
+GID="815499"
 
 list-targets:
 	@$(MAKE) -pRrq -f $(lastword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | egrep -v -e '^[^[:alnum:]]' -e '^$@$$'
@@ -25,9 +29,9 @@ build-wrk:
 test-db: build-db
 	docker run --name ${NSPACE}-db \
                    --network ${NSPACE}-network-test \
-                   -p 6441:6379 \
+                   -p ${RPORT}:6379 \
                    -d \
-                   -u 827385:815499 \
+                   -u ${UID}:${GID} \
                    -v ${PWD}/data/:/data \
                    ${NSPACE}/${APP}-db:${VER}
 
@@ -35,7 +39,7 @@ test-api: build-api
 	docker run --name ${NSPACE}-api \
                    --network ${NSPACE}-network-test \
                    --env REDIS_IP=${NSPACE}-db \
-                   -p 5041:5000 \
+                   -p ${FPORT}:5000 \
                    -d \
                    ${NSPACE}/${APP}-api:${VER} 
 
@@ -76,4 +80,5 @@ compose-up:
 
 compose-down:
 	VER=${VER} docker-compose -f docker/docker-compose.yml -p ${NSPACE} down
+
 
