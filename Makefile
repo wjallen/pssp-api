@@ -1,6 +1,6 @@
 NSPACE="wallen"
 APP="pssp-app"
-VER="0.2.1"
+VER="0.2.2"
 RPORT="6441"
 FPORT="5041"
 UID="827385"

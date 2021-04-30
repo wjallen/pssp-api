@@ -4,8 +4,11 @@ RUN ln -sf /usr/share/zoneinfo/America/Chicago /etc/localtime
 
 RUN pip3 install Flask==1.1.2 \
                  hotqueue==0.2.8 \
-                 redis==3.5.3 
+                 pytest==6.2.3 \
+                 redis==3.5.3 \
+                 requests==2.25.1
 
+COPY ./test/test_flask.py /app/test/
 COPY ./src/flask_api.py /app/
 WORKDIR /app
 
