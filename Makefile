@@ -82,3 +82,16 @@ compose-down:
 	VER=${VER} docker-compose -f docker/docker-compose.yml -p ${NSPACE} down
 
 
+
+
+k-test:
+	cat kubernetes/test/* | envsubst '$${VER}' | kubectl apply -f -
+
+k-prod:
+	cat kubernetes/prod/* | envsubst '$${VER}' | kubectl apply -f -
+
+
+
+
+
+
