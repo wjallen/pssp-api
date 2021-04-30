@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: pssp-test-db
-          image: wallen/pssp-app-db:${VER}
+          image: wallen/pssp-app-db:${TAG}
           imagePullPolicy: Always
           command: ["redis-server"]
           volumeMounts:

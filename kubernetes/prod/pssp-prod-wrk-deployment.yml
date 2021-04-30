@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: pssp-prod-wrk
-          image: wallen/pssp-app-wrk:${VER}
+          image: wallen/pssp-app-wrk:${TAG}
           imagePullPolicy: Always
           env:
           - name: REDIS_IP

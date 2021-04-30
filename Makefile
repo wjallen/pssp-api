@@ -85,11 +85,17 @@ compose-down:
 
 
 k-test:
-	cat kubernetes/test/* | envsubst '$${VER}' | kubectl apply -f -
+	cat kubernetes/test/* | TAG=${VER} envsubst '$${TAG}' | yq | kubectl apply -f -
+
+k-test-del:
+	cat kubernetes/test/*deployment.yml | TAG=${VER} envsubst '$${TAG}' | yq | kubectl delete -f -
+
 
 k-prod:
-	cat kubernetes/prod/* | envsubst '$${VER}' | kubectl apply -f -
+	cat kubernetes/prod/* | TAG=${VER} envsubst '$${TAG}' | yq | kubectl apply -f -
 
+k-prod-del:
+	cat kubernetes/prod/*deployment.yml | TAG=${VER} envsubst '$${TAG}' | yq | kubectl delete -f -
 
 
 
