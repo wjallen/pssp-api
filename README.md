@@ -219,3 +219,16 @@ kubectl apply -f kubernetes/test/*deployment.yml
 If that works, do the same thing for prod.
 
 
+
+### Test
+
+A simple functional test is included. Just pip install pytest, then in the top
+directory execute:
+
+```
+pytest
+```
+
+The big test in there will actually run a job, check the result, and delete the job
+that it ran. You may need to edit ``test/test_flask.py`` to put in the correct host
+and port for wherever you are running the test.
