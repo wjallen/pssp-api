@@ -1,2 +1,3 @@
 data/dump.rdb
 .*.swp
+__pycache__/
