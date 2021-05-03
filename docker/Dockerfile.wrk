@@ -5,6 +5,7 @@ RUN git clone https://github.com/realbigws/Predict_Property && \
     make
 
 RUN pip3 install hotqueue==0.2.8 \
+                 matplotlib==3.3.4 \
                  redis==3.5.3 
 
 COPY ./src/worker.py /app/
