@@ -65,7 +65,7 @@ def test_job():
     assert isinstance(response.json()[test_UUID]['status'], str) == True
     assert response.json()[test_UUID]['status'] == 'submitted'
 
-    time.sleep(30)
+    time.sleep(15)
     route_job = f'{flask_prefix}/jobs/{test_UUID}'
     response = requests.get(route_job)
     assert response.ok == True
@@ -77,7 +77,15 @@ def test_job():
     assert len(response.json()['result'].keys()) == 8
     assert isinstance(response.json()['datetime'], str) == True
     assert isinstance(response.json()['status'], str) == True
+    assert response.json()['image'] == 'ready'
     assert response.json()['status'] == 'finished'
+
+    route_download = f'{flask_prefix}/download/{test_UUID}'
+    response = requests.get(route_download)
+    assert response.ok == True
+    assert response.status_code == 200
+    assert isinstance(response.content, bytes) == True
+    assert response.headers['Content-Type'] == 'image/png'
 
     route_del = f'{flask_prefix}/delete'
     del_data = {'jobid': test_UUID}
