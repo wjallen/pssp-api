@@ -1,5 +1,5 @@
 from datetime import datetime
-from flask import Flask, request
+from flask import Flask, request, send_file
 import json
 from hotqueue import HotQueue
 import redis
@@ -22,13 +22,14 @@ def instructions():
     return """
     Try these routes:
     
-    /             informational
-    /run          (GET) job instructions
-    /run          (POST) submit job
-    /jobs         get list of past jobs
-    /jobs/<UUID>  get job results
-    /delete       (GET) delete instructions
-    /delete       (DELETE) delete job
+    /                 informational
+    /run              (GET) job instructions
+    /run              (POST) submit job
+    /jobs             get list of past jobs
+    /jobs/<UUID>      get job results
+    /delete           (GET) delete instructions
+    /delete           (DELETE) delete job
+    /download/<UUID>  download img from job 
 
 """
 
@@ -94,9 +95,19 @@ def get_job_output(jobuuid):
     for key, value in bytes_dict.items():
         if key.decode('utf-8') == 'result':
             final_dict[key.decode('utf-8')] = json.loads(value.decode('utf-8'))
+        elif key.decode('utf-8') == 'image':
+            final_dict[key.decode('utf-8')] = 'ready'
         else:
             final_dict[key.decode('utf-8')] = value.decode('utf-8')
     return json.dumps(final_dict, indent=4)
+
+
+@app.route('/download/<jobuuid>', methods=['GET'])
+def download(jobuuid):
+    path = f'/app/{jobuuid}.png'
+    with open(path, 'wb') as f:
+        f.write(rd.hget(jobuuid, 'image'))
+    return send_file(path, mimetype='image/png', as_attachment=True)
 
 
 if __name__ == '__main__':
