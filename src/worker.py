@@ -2,6 +2,7 @@ from hotqueue import HotQueue
 import json
 import os
 import redis
+import matplotlib.pyplot as plt
 import subprocess
 
 
@@ -17,7 +18,7 @@ q = HotQueue('queue', host=redis_ip, port=6379, db=1)
 @q.worker
 def run_pssp_job(job):
 
-    subprocess.run(["sleep 20"], shell=True, check=True)
+    subprocess.run(["sleep 1"], shell=True, check=True)
 
     data = rd.hgetall(job)
     this_sequence = data['input']
@@ -46,6 +47,28 @@ def run_pssp_job(job):
     result['TM8'] = output[7]
 
     rd.hset(job, 'result', json.dumps(result))
+
+    aas = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y']
+    aas_pos = [i for i, _ in enumerate(aas)]
+    count = [0] * 20
+    for i in range(len(this_sequence)):
+        for j in range(len(aas)):
+            if this_sequence[i] == aas[j]:
+                count[j] += 1
+
+    plt.clf()
+    plt.bar(aas_pos, count, color='green')
+    plt.xlabel('Amino Acids')
+    plt.ylabel('Frequency')
+    plt.title('Amino Acid Frequency')
+    plt.xticks(aas_pos, aas)
+    plt.savefig('/analyze/out.png')
+
+    with open('/analyze/out.png', 'rb') as f:
+        img = f.read()
+
+    rd.hset(job, 'image', img) 
+
     rd.hset(job, 'status', 'finished')
 
     return
