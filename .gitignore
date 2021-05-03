@@ -1,3 +1,4 @@
 data/dump.rdb
 .*.swp
 __pycache__/
+*.pyc
