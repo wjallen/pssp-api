@@ -1,6 +1,6 @@
 NSPACE="wallen"
 APP="pssp-app"
-VER="0.3.0"
+VER="0.3.1"
 RPORT="6441"
 FPORT="5041"
 UID="827385"
@@ -72,7 +72,7 @@ clean-all: clean-db clean-api clean-wrk
 
 
 compose-up:
-	VER=${VER} docker-compose -f docker/docker-compose.yml pull
+	#VER=${VER} docker-compose -f docker/docker-compose.yml pull
 	VER=${VER} docker-compose -f docker/docker-compose.yml -p ${NSPACE} up -d --build ${NSPACE}-db
 	VER=${VER} docker-compose -f docker/docker-compose.yml -p ${NSPACE} up -d --build ${NSPACE}-api
 	sleep 5

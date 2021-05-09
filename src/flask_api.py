@@ -64,8 +64,18 @@ def delete_job():
 
     if request.method == 'DELETE':
         this_jobid = str(request.form['jobid'])
-        rd.delete(this_jobid)
-        return f'Job {this_jobid} deleted\n'
+        if this_jobid == 'ALL':
+            rd.flushdb()
+            file_list = os.listdir('.')
+            for item in file_list:
+                if item.endswith('.png'):
+                    os.remove(item)
+            return 'All jobs deleted\n'
+        else:
+            rd.delete(this_jobid)
+            if os.path.exists(f'{this_jobid}.png'):
+                os.remove(f'{this_jobid}.png')
+            return f'Job {this_jobid} deleted\n'
 
     else:
         return """
@@ -74,6 +84,8 @@ def delete_job():
     curl -X DELETE -d "jobid=asdf1234" localhost:5041/delete
 
     Where the jobid "asdf1234" is what you want to delete.
+
+    Use -d "jobid=ALL" to delete all jobs.
 
 """
 
