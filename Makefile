@@ -1,6 +1,6 @@
 NSPACE="wallen"
 APP="pssp-app"
-VER="0.3.1"
+VER="0.3.2"
 RPORT="6441"
 FPORT="5041"
 UID="827385"
@@ -11,9 +11,7 @@ list-targets:
 
 
 build-db:
-	docker build -t ${NSPACE}/${APP}-db:${VER} \
-                     -f docker/Dockerfile.db \
-                     ./
+	docker pull redis:6.2.3
 
 build-api:
 	docker build -t ${NSPACE}/${APP}-api:${VER} \
@@ -33,7 +31,7 @@ test-db: build-db
                    -d \
                    -u ${UID}:${GID} \
                    -v ${PWD}/data/:/data \
-                   ${NSPACE}/${APP}-db:${VER}
+                   redis:6.2.3
 
 test-api: build-api
 	docker run --name ${NSPACE}-api \
@@ -72,11 +70,7 @@ clean-all: clean-db clean-api clean-wrk
 
 
 compose-up:
-	#VER=${VER} docker-compose -f docker/docker-compose.yml pull
-	VER=${VER} docker-compose -f docker/docker-compose.yml -p ${NSPACE} up -d --build ${NSPACE}-db
-	VER=${VER} docker-compose -f docker/docker-compose.yml -p ${NSPACE} up -d --build ${NSPACE}-api
-	sleep 5
-	VER=${VER} docker-compose -f docker/docker-compose.yml -p ${NSPACE} up -d --build ${NSPACE}-wrk
+	VER=${VER} docker-compose -f docker/docker-compose.yml -p ${NSPACE} up -d --build
 
 compose-down:
 	VER=${VER} docker-compose -f docker/docker-compose.yml -p ${NSPACE} down
@@ -96,8 +90,6 @@ k-prod:
 
 k-prod-del:
 	cat kubernetes/prod/*deployment.yml | TAG=${VER} envsubst '$${TAG}' | yq | kubectl delete -f -
-
-
 
 
 

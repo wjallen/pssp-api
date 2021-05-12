@@ -2,22 +2,30 @@
 version: '3'
 services:
     wallen-db:
-        image: wallen/pssp-app-db:${VER}
+        image: redis:6.2.3
         container_name: wallen-db
         ports:
             - 6441:6379
         user: "827385:815499"
         volumes:
-            - ../data/:/data/
+            - ./data/:/data/
     wallen-api:
-        image: wallen/pssp-app-api:${VER}
+        build:
+            context: ../
+            dockerfile: ${PWD}/docker/Dockerfile.api
         container_name: wallen-api
         environment:
             - REDIS_IP=wallen-db
         ports:
             - 5041:5000
+        depends_on:
+            - wallen-db
     wallen-wrk:
-        image: wallen/pssp-app-wrk:${VER}
+        build:
+            context: ../ 
+            dockerfile: ${PWD}/docker/Dockerfile.wrk
         container_name: wallen-wrk
         environment:
             - REDIS_IP=wallen-db
+        depends_on:
+            - wallen-db
