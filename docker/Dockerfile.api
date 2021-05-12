@@ -9,6 +9,7 @@ RUN pip3 install Flask==1.1.2 \
                  requests==2.25.1
 
 COPY ./test/test_flask.py /app/test/
+COPY ./Makefile /app/
 COPY ./src/flask_api.py /app/
 WORKDIR /app
 

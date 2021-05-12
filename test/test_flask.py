@@ -1,10 +1,23 @@
 import pytest
 import re
 import requests
+import socket
 import time
 
+FPORT = ''
+with open('Makefile', 'r') as f:
+    for line in f:
+        if line.startswith('FPORT'):
+            FPORT=line.split('"')[1]
+
+test_flask_port = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+if test_flask_port.connect_ex(('localhost', int(FPORT))) == 0:
+    flask_port = FPORT
+else:
+    flask_port = '5000'
+
+
 flask_ip = 'localhost'
-flask_port = '5041'
 flask_prefix = f'http://{flask_ip}:{flask_port}'
 test_UUID = ''
 
