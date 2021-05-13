@@ -1,6 +1,6 @@
 NSPACE="wallen"
 APP="pssp-app"
-VER="0.3.3"
+VER="0.3.4"
 RPORT="6441"
 FPORT="5041"
 UID="827385"
@@ -50,13 +50,13 @@ test-wrk: build-wrk
 
 
 clean-db:
-	docker ps -a | grep ${NSPACE}-db | awk '{print $$1}' | xargs docker rm -f
+	docker stop ${NSPACE}-db && docker rm -f ${NSPACE}-db
 
 clean-api:
-	docker ps -a | grep ${NSPACE}-api | awk '{print $$1}' | xargs docker rm -f
+	docker stop ${NSPACE}-api && docker rm -f ${NSPACE}-api
 
 clean-wrk:
-	docker ps -a | grep ${NSPACE}-wrk | awk '{print $$1}' | xargs docker rm -f
+	docker stop ${NSPACE}-wrk && docker rm -f ${NSPACE}-wrk
 
 
 
@@ -65,7 +65,6 @@ build-all: build-db build-api build-wrk
 test-all: test-db test-api test-wrk
 
 clean-all: clean-db clean-api clean-wrk
-
 
 
 
@@ -79,17 +78,23 @@ compose-down:
 
 
 k-test:
-	cat kubernetes/test/* | TAG=${VER} envsubst '$${TAG}' | yq | kubectl apply -f -
+	kubectl apply -f kubernetes/test/pssp-test-db-service.yml
+	DBIP=$$(kubectl describe service pssp-test-db-service | grep 'IP:' | awk '{print $$2}') && \
+	cat kubernetes/test/* | TAG=${VER} envsubst '$${TAG}' | RIP=$${DBIP} envsubst '$${RIP}' | yq | kubectl apply -f -
 
 k-test-del:
-	cat kubernetes/test/*deployment.yml | TAG=${VER} envsubst '$${TAG}' | yq | kubectl delete -f -
+	cat kubernetes/test/*.yml | TAG=${VER} envsubst '$${TAG}' | yq | kubectl delete -f -
+
 
 
 k-prod:
-	cat kubernetes/prod/* | TAG=${VER} envsubst '$${TAG}' | yq | kubectl apply -f -
+	kubectl apply -f kubernetes/prod/pssp-prod-db-service.yml
+	DBIP=$$(kubectl describe service pssp-prod-db-service | grep 'IP:' | awk '{print $$2}') && \
+	cat kubernetes/prod/* | TAG=${VER} envsubst '$${TAG}' | RIP=$${DBIP} envsubst '$${RIP}' | yq | kubectl apply -f -
 
 k-prod-del:
-	cat kubernetes/prod/*deployment.yml | TAG=${VER} envsubst '$${TAG}' | yq | kubectl delete -f -
+	cat kubernetes/prod/*.yml | TAG=${VER} envsubst '$${TAG}' | yq | kubectl delete -f -
+
 
 
 

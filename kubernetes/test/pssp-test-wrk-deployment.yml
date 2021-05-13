@@ -23,4 +23,4 @@ spec:
           imagePullPolicy: Always
           env:
           - name: REDIS_IP
-            value: 10.98.63.77
+            value: ${RIP}
