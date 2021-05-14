@@ -13,25 +13,76 @@ There are three containerized components:
 
 ### Flask API Front End
 
-Mapped to port 5041 on ISP. Try the following routes:
+The API front end is exposed on port 5000 inside the container, and mapped to port
+5041 on ISP. Try, for example, the following routes:
 
 ```
-curl localhost:5041/             # general info
-curl localhost:5041/run          # get instructions to submit a job
-curl localhost:5041/jobs         # get past jobs
-curl localhost:5041/jobs/JOBID   # get results for JOBID
+$ curl localhost:5000/
+
+/                 informational            
+/run              (GET) job instructions   
+/run              (POST) submit job        
+/jobs             get list of past jobs    
+/jobs/<UUID>      get job results          
+/download/<UUID>  download img from job    
+/delete           (GET) delete instructions
+/delete           (DELETE) delete job      
+
 ```
 
-The `/run` route also has a POST method for submitting jobs, which looks like:
+The `/run` route will print instructions if sent a GET request, and if sent a POST
+request will create and submit jobs, which looks like:
 
 ```
-curl -X POST -d "seq=AAAAA" localhost:5041/run
+$ curl -X POST -d "seq=AAAAA" localhost:5000/run
+Job a62467d2-605e-4bc2-abf5-6cd0b72041cd submitted to the queue
 ```
 
-In that case, the sequence "AAAAA" is analyzed.
+In that case, the sequence "AAAAA" is analyzed. To see a list of all jobs, hit
+the `/jobs` route with a GET request:
 
-When testing things, it assumes docker bridge network `${NSPACE}-network-test` exists,
-where ${NSPACE} is defined in the Makefile. Do the following to deploy individual services:
+```
+$ curl localhost:5000/jobs
+{
+    "a62467d2-605e-4bc2-abf5-6cd0b72041cd": {
+        "datetime": "2021-05-13 11:50:25.218075",
+        "status": "finished"
+    }
+```
+
+And curl the status / output of a specific job by providing the UUID in the URL:
+
+```
+$ curl localhost:5000/jobs/a62467d2-605e-4bc2-abf5-6cd0b72041cd
+{
+    "datetime": "2021-05-13 11:50:25.218075",
+    "status": "submitted",
+    "result": "pending",
+    "input": "AAAAA"
+}
+```
+
+When the job completes, the result will be updated and an image (plot) will also
+be added. Download the image using the following route, making sure to redirect
+the output to file:
+
+```
+$ curl localhost:5000/download/a62467d2-605e-4bc2-abf5-6cd0b72041cd > output.png
+```
+
+Finally, you can delete a specific job using the `/delete` route. A GET request
+will provide instructions, and a DELETE request along with the JOBID will permanently
+delete the job from the database:
+
+```
+$ curl -X DELETE -d "jobid=a62467d2-605e-4bc2-abf5-6cd0b72041cd" localhost:5000/delete
+Job a62467d2-605e-4bc2-abf5-6cd0b72041cd deleted
+$ curl -X DELETE -d "jobid=all" localhost:5000/delete
+Job all deleted
+```
+
+To build and run a new copy of the API container on ISP for testing, use the 
+following commands:
 
 ```
 make clean-api     # remove api container
@@ -41,17 +92,13 @@ make test-api      # build dockerfile and start api container
 
 ### Redis DB
 
-The Redis db configuration is located at ./data/redis.conf. It is mounted
-inside the container at /data/ when doing `docker run`. It is customized to have
-a more frequent save interval and bind to 0.0.0.0. It uses the default Redis
-port inside the container (6379), and is mapped to 6441 on ISP It uses the default Redis
-port inside the container (6379), and is mapped to 6441 on ISP.
+The Redis db uses the stock Docker image redis/6.2.3. It mounts the local /data
+folder inside the container when doing `docker run` on ISP. The database is dumped
+every so often to /data/dump.rdb. It will automatically be reloaded if the container
+goes down and back up.
 
-The database is dumped every 2 minutes (if there is a change) to the file
-/data/dump.rdb, which is captured in this directory as ./data/dump.rdb. The
-database will automatically load that data when the container starts up. To 
-delete the database, first stop the container, then remove the dump.rdb file,
-and finally start a new container. Some useful commands:
+The container uses the default Redis port inside the container (6379), and is
+mapped to 6441 on ISP. To start a new container on ISP, do:
 
 ```
 make clean-db     # remove db container
@@ -95,7 +142,7 @@ The relevant solvent accessibility is divided into three states by 2 cutoff valu
 
 If running the tool on the command line, a `head -n 8 <id>PROP/<id>.all` will
 return all of the useful lines. Here are some commands to deploy a test worker
-container:
+container on ISP:
 
 ```
 make clean-wrk    # remove worker container
@@ -103,7 +150,7 @@ make test-wrk     # build dockerfile and start worker container
 ```
 
 Since the worker is just waiting to consume jobs from the hotqueue, the best way
-to test is actually submitting jobs to the API and not calling the code directly.
+to test is actually submitting jobs to the API and not calling this code directly.
 
 
 ### Docker Bridge Network
@@ -117,7 +164,7 @@ docker network create wallen-network-test
 ```
 
 
-### Compose
+### Docker Compose
 
 The above commands are useful for launching and testing individual parts of
 the app. Docker-compose targets have also been written into the Makefile to
@@ -128,11 +175,8 @@ is a good idea to clean up all of the test containers:
 make clean-all 
 ```
 
-The following will pull the version of containers from Docker Hub that are
-specified in the top of the Makefile as 'VER', and it will launch each of the
-three services one by one. There is a slight (sleep 5) before launching the
-worker because the worker will terminate with a failure if it cannot connect
-to the redis db.
+The following will build the version of containers specified in the top of the
+Makefile as 'VER', and it will launch each of the three services one by one.
 
 ```
 make compose-up
@@ -148,7 +192,7 @@ make compose-down
 ### Tag Release
 
 A Github - Dockerhub integration is set up so that every time a new release is
-tagged in the git repo, the three docker containers will automatically re-build
+tagged in the git repo, the API and worker containers will automatically re-build
 and tag themselves with the same release tag (even if there are no changes to
 the dockerfiles or source code). To tag a release, follow these general steps:
 
@@ -162,22 +206,18 @@ git add .                # add all the new code
 git commit -m 'message'  # commit changes
 git push                 # push to github
 
-
 git tag -a <tag> -m 'msg'  # add a new tag with descriptive 'msg'
 git push origin <tag>      # push the tag up to github
 ```
 
 The last 'git push' will have the downstream effect of triggering a re-build
-of all images on Dockerhub. That can take 5-10 minutes. Once the new tags
+of both images on Dockerhub. That can take 5-10 minutes. Once the new tags
 are all seen on Dockerhub, delete the local containers (`make clean-all`) and
 try to re-orchestrate all of them with:
 
 ```
 make compose-up
 ```
-
-That should do a re-pull and deployment of the newest images using the tag in the 
-top of the Makefile.
 
 To determine the appropriate version, try to follow these general guidelines:
 
@@ -191,44 +231,35 @@ See: https://semver.org/
 
 ### Kubernetes
 
-Currently supporting a Kubernetes test and prod environment. Manual changes needed
-in the yml files for each include the image tag (in all the deployment files), and
-the redis service IP in the api / wrk deployment files. Once those changes are made,
-you can do this to launch everything:
+Currently supporting a Kubernetes test and prod environment. The yaml files have a
+few variables in them for image version and the Redis Service IP. The Redis Service 
+IP is automatically grabbed as part of the make target. The only change needed is
+to specify the desired Docker image tag in the top of the Makefile. Once that is
+set, you can do this to launch everything:
 
 ```
-kubectl apply -f kubernetes/test/
-kubectl apply -f kubernetes/prod/
+make k-test    # launch test / staging env
+make k-prod    # launch prod env
 ```
 
-Easiest way to test for now is to kubectl exec into the python debug pod and curl
-whatever routes. Still need to set up nodeport service to see it from the outside
-world.
-
-
-To update to a new version of the containers on Docker Hub, follow these steps:
+The services can be torn down with:
 
 ```
-# first edit the three deployment yml files to point to the new image tag.
-
-kubectl apply -f kubernetes/test/*deployment.yml
-
-# check to make sure pods terminate and restart as appropriate, curl routes
+make k-test-del
+make k-prod-del
 ```
 
-If that works, do the same thing for prod.
 
 
+### Testing
 
-### Test
-
-A simple functional test is included. Just pip install pytest, then in the top
-directory execute:
+A simple functional test is included. If testing on ISP, you first have to pip
+install the pytest library, then in the top directory of this repo execute:
 
 ```
 pytest
 ```
 
 The big test in there will actually run a job, check the result, and delete the job
-that it ran. You may need to edit ``test/test_flask.py`` to put in the correct host
-and port for wherever you are running the test.
+that it ran. The test script should grab the appropriate Flask port from the Makefile.
+Tesing should work the same on ISP and inside the Flask API pod on kubernetes.
