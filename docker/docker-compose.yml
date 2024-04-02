@@ -5,8 +5,8 @@ services:
         image: redis:6.2.3
         container_name: wallen-db
         ports:
-            - 6441:6379
-        user: "827385:815499"
+            - 6379:6379
+        user: "1000:1000"
         volumes:
             - ./data/:/data/
     wallen-api:
@@ -17,7 +17,7 @@ services:
         environment:
             - REDIS_IP=wallen-db
         ports:
-            - 5041:5000
+            - 5000:5000
         depends_on:
             - wallen-db
     wallen-wrk:
